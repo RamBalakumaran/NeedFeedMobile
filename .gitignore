@@ -1,15 +1,5 @@
-# Node
 node_modules/
-
-# Env
 .env
-
-# Expo
 .expo/
 dist/
 build/
-
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
