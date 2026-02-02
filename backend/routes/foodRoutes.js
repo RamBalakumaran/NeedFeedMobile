@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const upload = require('../config/cloudinary');
 const Food = require('../models/Food');
+const User = require('../models/User');
 const { protect } = require('../middleware/authMiddleware'); 
 
 // POST /api/food/donate (Uploads Image + Data)
@@ -100,6 +101,121 @@ router.get('/my/:donorId', async (req, res) => {
     console.error(error);
     res.status(500).json({ message: 'Server Error' });
   }
+});
+
+router.put('/request/:id', protect, async (req, res) => {
+  try {
+    const food = await Food.findById(req.params.id);
+    
+    if (!food) return res.status(404).json({ message: 'Food not found' });
+    if (food.status !== 'Available') return res.status(400).json({ message: 'Food already requested' });
+
+    food.status = 'Pending';
+    food.requestedBy = req.user.id; // Saves the NGO ID
+    await food.save();
+    
+    res.json(food);
+  } catch (e) { 
+    console.error(e);
+    res.status(500).json({ message: 'Server Error during request' }); 
+  }
+});
+
+
+
+router.get('/requests/donor', protect, async (req, res) => {
+  try {
+    const foods = await Food.find({ 
+      donor: req.user.id, 
+      status: { $in: ['Pending', 'Accepted', 'PickedUp', 'Delivered'] } 
+    })
+    .populate('requestedBy', 'name email phone organizationName') // See who asked
+    .populate('assignedVolunteer', 'name phone vehicleType') // See who is delivering
+    .sort({ createdAt: -1 });
+    
+    res.json(foods);
+  } catch (e) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// 2. DONOR RESPONDS (Accept / Reject)
+router.put('/respond/:id', protect, async (req, res) => {
+  const { action } = req.body; // 'accept' or 'reject'
+  
+  try {
+    const food = await Food.findById(req.params.id);
+    if (!food) return res.status(404).json({ message: "Food not found" });
+
+    if (action === 'reject') {
+      // Logic: Reset to Available so others can find it
+      food.status = 'Available';
+      food.requestedBy = null;
+    } else if (action === 'accept') {
+      // Logic: Lock it for that NGO
+      food.status = 'Accepted';
+      // (Optional: Here you could auto-assign a volunteer if you had geospatial logic)
+    }
+    
+    await food.save();
+    res.json(food);
+  } catch (e) { 
+    res.status(500).json({ message: 'Error responding' }); 
+  }
+});
+
+// 3. CANCEL REQUEST (NGO)
+router.put('/cancel/:id', protect, async (req, res) => {
+  try {
+    const food = await Food.findById(req.params.id);
+    food.status = 'Available';
+    food.requestedBy = null;
+    food.assignedVolunteer = null;
+    await food.save();
+    res.json(food);
+  } catch (e) { res.status(500).json({ message: 'Error cancelling' }); }
+});
+
+// 4. VOLUNTEER UPDATE STATUS (Pickup/Deliver)
+router.put('/status/:id', protect, async (req, res) => {
+  const { status } = req.body; // 'PickedUp' or 'Delivered'
+  try {
+    const food = await Food.findById(req.params.id);
+    food.status = status;
+    await food.save();
+    res.json(food);
+  } catch (e) { res.status(500).json({ message: 'Error updating status' }); }
+});
+
+// 5. GET REQUESTS FOR DONOR
+router.get('/requests/donor', protect, async (req, res) => {
+  const foods = await Food.find({ donor: req.user.id, status: { $in: ['Pending', 'Accepted', 'PickedUp', 'Delivered'] } })
+    .populate('requestedBy', 'name phone email organizationName')
+    .populate('assignedVolunteer', 'name phone vehicleType')
+    .sort({ createdAt: -1 });
+  res.json(foods);
+});
+
+// 6. GET REQUESTS FOR NGO
+router.get('/requests/ngo', protect, async (req, res) => {
+  const foods = await Food.find({ requestedBy: req.user.id })
+    .populate('donor', 'name phone address')
+    .populate('assignedVolunteer', 'name phone vehicleType')
+    .sort({ createdAt: -1 });
+  res.json(foods);
+});
+
+// 7. GET TASKS FOR VOLUNTEER
+router.get('/tasks/volunteer', protect, async (req, res) => {
+  // In real app, filter by req.user.id if explicitly assigned
+  const foods = await Food.find({ 
+    status: { $in: ['Accepted', 'PickedUp', 'Delivered'] },
+    assignedVolunteer: { $ne: null } 
+  })
+    .populate('donor', 'name address')
+    .populate('requestedBy', 'name address organizationName')
+    .sort({ createdAt: -1 });
+  res.json(foods);
 });
 
 module.exports = router;

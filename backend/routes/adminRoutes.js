@@ -54,26 +54,52 @@ router.delete('/food/:id', protect, adminOnly, async (req, res) => {
 });
 
 // 5. GET ANALYTICS STATS
+// 5. GET DETAILED ANALYTICS STATS
 router.get('/stats', protect, adminOnly, async (req, res) => {
   try {
+    // 1. User Counts
     const totalUsers = await User.countDocuments();
-    const totalFood = await Food.countDocuments();
-    const activeDonations = await Food.countDocuments({ expiryTime: { $gt: new Date() } });
-    
-    // Aggregation for user roles
     const donors = await User.countDocuments({ role: 'donor' });
     const ngos = await User.countDocuments({ role: 'ngo' });
     const volunteers = await User.countDocuments({ role: 'volunteer' });
 
+    // 2. Food General Counts
+    const totalFood = await Food.countDocuments();
+    const activeDonations = await Food.countDocuments({ status: 'Available', expiryTime: { $gt: new Date() } });
+
+    // 3. Food Status Breakdown
+    const delivered = await Food.countDocuments({ status: 'Delivered' });
+    const pending = await Food.countDocuments({ status: 'Pending' });
+    const expired = await Food.countDocuments({ 
+        $or: [
+            { status: 'Expired' },
+            { status: 'Available', expiryTime: { $lt: new Date() } }
+        ]
+    });
+
+    // 4. Food Type Breakdown
+    const veg = await Food.countDocuments({ foodType: 'Veg' });
+    const nonVeg = await Food.countDocuments({ foodType: 'Non-Veg' });
+
     res.json({
       totalUsers,
-      totalFood,
-      activeDonations,
       donors,
       ngos,
-      volunteers
+      volunteers,
+      totalFood,
+      activeDonations,
+      breakdown: {
+        delivered,
+        pending,
+        expired
+      },
+      types: {
+        veg,
+        nonVeg
+      }
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Server Error' });
   }
 });

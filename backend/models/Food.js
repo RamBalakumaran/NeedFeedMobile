@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const foodSchema = new mongoose.Schema({
-  // 1. Linking
+  // 1. Linking - Who posted this?
   donor: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User', 
@@ -26,24 +26,48 @@ const foodSchema = new mongoose.Schema({
   },
 
   // 4. Safety & Quality
-  preparationTime: { type: Date, required: true }, // When was it cooked?
-  expiryTime: { type: Date, required: true }, // Auto-calculated
+  preparationTime: { type: Date, required: true }, 
+  expiryTime: { type: Date, required: true }, 
   storageInstruction: { 
     type: String, 
     enum: ['Keep Hot', 'Refrigerate', 'Room Temperature'],
     default: 'Room Temperature'
   },
   
-  // 5. Proof
-  imageUrl: { type: String, required: true }, // Visual Proof
+  // 5. Proof & Location
+  imageUrl: { type: String, required: true }, 
   location: {
     type: { type: String, default: 'Point' },
     coordinates: { type: [Number], required: true } // [Longitude, Latitude]
   },
-  address: { type: String }, // Text address for easy reading
+  address: { type: String }, // Human-readable address
+
+  // 6. 🚀 NEW: WORKFLOW TRACKING
+  // This manages the lifecycle: Available -> Pending (NGO Requests) -> Accepted (Donor Approves) -> PickedUp -> Delivered
+  status: { 
+    type: String, 
+    enum: ['Available', 'Pending', 'Accepted', 'PickedUp', 'Delivered', 'Expired', 'Cancelled'], 
+    default: 'Available' 
+  },
+  
+  // Who requested the food? (NGO)
+  requestedBy: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User', 
+    default: null 
+  },
+  
+  // Who is delivering it? (Volunteer)
+  assignedVolunteer: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User', 
+    default: null 
+  },
 
   createdAt: { type: Date, default: Date.now }
 });
 
+// Geo-spatial index for "Find Food Near Me"
 foodSchema.index({ location: '2dsphere' });
+
 module.exports = mongoose.model('Food', foodSchema);
