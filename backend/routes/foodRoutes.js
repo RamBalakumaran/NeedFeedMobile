@@ -4,18 +4,19 @@ const upload = require('../config/cloudinary');
 const foodController = require('../controllers/foodController');
 const { protect } = require('../middleware/authMiddleware');
 
-// Discovery
+// 1. NGO Discovery
 router.get('/available', foodController.getAvailableFood);
 
-// Create Donation
+// 2. Donate Food (Donor)
 router.post('/donate', protect, upload.single('image'), foodController.donateFood);
 
-// NGO Actions
+// 3. NGO Actions
 router.put('/request/:id', protect, foodController.requestFood);
-router.get('/requests/ngo', protect, foodController.getNGORequests); // Fix for your empty page
+router.get('/requests/ngo', protect, foodController.getNGORequests);
 
-// Donor Actions
-router.get('/requests/donor', protect, foodController.getDonorRequests);
+// 4. Donor Actions
+router.get('/requests/donor', protect, foodController.getDonorRequests); // For Incoming Requests
+router.get('/my/:donorId', foodController.getMyDonations);             // For Donation History
 router.put('/respond/:id', protect, foodController.respondToNGORequest);
 
 module.exports = router;

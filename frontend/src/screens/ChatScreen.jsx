@@ -10,7 +10,7 @@ import { AuthContext } from '../context/AuthContext';
 import client from '../api/client';
 
 // !!! UPDATE THIS TO YOUR LAPTOP IP !!!
-const SOCKET_URL = "http://192.168.0.100:5000"; 
+const SOCKET_URL = "http://10.26.95.49:5000"; 
 
 const ChatScreen = ({ route }) => {
   const { requestId, name, status } = route.params || {};
@@ -49,22 +49,34 @@ const ChatScreen = ({ route }) => {
     };
     loadHistory();
 
-    // --- FIX FOR DOUBLE PRINTING ---
+    // Handle incoming messages - replace optimistic with real ones
     socket.current.on('newMessage', (msg) => {
       setMessages((prev) => {
-        // Only add if message ID doesn't exist
-        const exists = prev.find(m => m._id === msg._id);
-        if (exists) return prev;
+        // Check if message already exists by real _id
+        if (prev.find(m => m._id === msg._id)) {
+          return prev;
+        }
         
-        // Remove the temporary optimistic message if it matches this real one
-        const filtered = prev.filter(m => m.text !== msg.text || m.senderId !== msg.senderId || m._id.length > 15);
+        // Replace optimistic message with the real one
+        const updatedMessages = prev.map(m => {
+          // Match optimistic message (temp ID) with real message by comparing senderId, text, and timing
+          if (m._id.startsWith('temp-') && m.senderId === msg.senderId && m.text === msg.text) {
+            return msg; // Replace with real message from DB
+          }
+          return m;
+        });
         
-        return [...filtered, msg];
+        // If no optimistic message was replaced, just add the new message
+        if (updatedMessages.find(m => m._id === msg._id)) {
+          return updatedMessages;
+        }
+        
+        return [...updatedMessages, msg];
       });
     });
 
     return () => { if(socket.current) socket.current.disconnect(); };
-  }, [requestId, currentUserId]);
+  }, [requestId, currentUserId, userToken]);
 
   const sendMessage = () => {
     if (text.trim().length > 0 && socket.current) {

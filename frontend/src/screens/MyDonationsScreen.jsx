@@ -12,16 +12,27 @@ const MyDonationsScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchMyDonations = async () => {
-    try {
-      const res = await client.get(`/food/my/${userInfo._id || userInfo.id}`);
-      setDonations(res.data);
-    } catch (error) {
-      console.log("Error fetching donations:", error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+  // 1. Check if ID exists to avoid calling "/food/my/undefined"
+  const id = userInfo?._id || userInfo?.id;
+  if (!id) return;
+
+  try {
+    const res = await client.get(`/food/my/${id}`);
+    setDonations(res.data);
+  } catch (error) {
+    console.log("Error fetching donations:", error);
+  } finally {
+    setLoading(false);
+    setRefreshing(false);
+  }
+};
+
+useEffect(() => {
+  // 2. Only fetch if userInfo is ready
+  if (userInfo) {
+    fetchMyDonations();
+  }
+}, [userInfo]); // Add userInfo as a dependency
 
   useEffect(() => {
     fetchMyDonations();

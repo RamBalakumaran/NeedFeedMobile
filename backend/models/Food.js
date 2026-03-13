@@ -46,7 +46,7 @@ const foodSchema = new mongoose.Schema({
   // This manages the lifecycle: Available -> Pending (NGO Requests) -> Accepted (Donor Approves) -> PickedUp -> Delivered
   status: { 
     type: String, 
-    enum: ['Available', 'Pending', 'Accepted', 'PickedUp', 'Delivered', 'Expired', 'Cancelled'], 
+    enum: ['Available', 'Pending', 'Accepted','FindingVolunteer','WaitingForVolunteer','PickedUp', 'Delivered', 'Expired', 'Cancelled'], 
     default: 'Available' 
   },
   

@@ -23,6 +23,7 @@ import NGOScreen from './src/screens/ngo/NGODashboard';
 
 // 4. Admin Screens
 import AdminDashboard from './src/screens/admin/AdminDashboard';
+import AdminRoleScreen from './src/screens/admin/AdminRoleScreen';
 import UserManagement from './src/screens/admin/UserManagement';
 import FoodMonitoring from './src/screens/admin/FoodMonitoring';
 import Analytics from './src/screens/admin/Analytics';
@@ -87,6 +88,7 @@ const AppNav = () => {
               <Stack.Screen name="VolunteerDashboard" component={VolunteerScreen} options={headerOptions('Delivery Tasks')} />
 
               {/* Admin Routes */}
+              <Stack.Screen name="AdminRole" component={AdminRoleScreen} options={{ headerShown: false }} />
               <Stack.Screen name="AdminDashboard" component={AdminDashboard} options={{ headerShown: false }} />
               <Stack.Screen name="UserManagement" component={UserManagement} options={headerOptions('Manage Users')} />
               <Stack.Screen name="FoodMonitoring" component={FoodMonitoring} options={headerOptions('Food Monitoring')} />
