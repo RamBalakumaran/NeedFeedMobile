@@ -1,7 +1,7 @@
 import axios from 'axios';
 import Constants from 'expo-constants';
 
-const FALLBACK_API_URL = 'http://192.168.0.101:5000/api';
+const FALLBACK_API_URL = 'https://needfeed-backend.onrender.com/api';
 
 const isUsableLanHost = (host) => (
   /^\d{1,3}(\.\d{1,3}){3}$/.test(host)
