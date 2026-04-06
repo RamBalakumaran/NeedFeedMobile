@@ -28,7 +28,8 @@
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
         "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION"
+        "ACCESS_FINE_LOCATION",
+        "POST_NOTIFICATIONS"
       ]
     },
     "web": {
@@ -46,6 +47,14 @@
         "expo-location",
         {
           "locationAlwaysAndWhenInUsePermission": "Allow NeedFeed to use your location to find nearby NGOs."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/logo.png",
+          "color": "#F25F4C",
+          "defaultChannel": "default"
         }
       ]
     ]

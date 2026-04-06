@@ -1,5 +1,12 @@
 import React from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 const COLORS = { primary: '#F25F4C', bg: '#FAFAFA', card: '#FFFFFF', text: '#1D212B', gray: '#9FA1AC' };

@@ -65,7 +65,7 @@ const DonateScreen = ({ navigation }) => {
     }
     const result = await ImagePicker.launchCameraAsync({
       // ✅ FIXED: Using MediaTypeOptions prevents the crash
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true, aspect: [4, 3], quality: 0.5,
     });
     if (!result.canceled) setImage(result.assets[0].uri);
@@ -79,7 +79,7 @@ const DonateScreen = ({ navigation }) => {
     }
     const result = await ImagePicker.launchImageLibraryAsync({
       // ✅ FIXED: Using MediaTypeOptions prevents the crash
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true, aspect: [4, 3], quality: 0.5,
     });
     if (!result.canceled) setImage(result.assets[0].uri);

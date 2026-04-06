@@ -1,8 +1,17 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { 
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, 
-  StatusBar, SafeAreaView, Image, Platform, Dimensions 
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  RefreshControl,
+  StatusBar,
+  Image,
+  Platform,
+  Dimensions
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import client from '../../api/client';
 import { AuthContext } from '../../context/AuthContext';
@@ -273,3 +282,4 @@ const styles = StyleSheet.create({
 });
 
 export default AdminDashboardScreen;
+

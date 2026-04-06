@@ -3,3 +3,9 @@ node_modules/
 .expo/
 dist/
 build/
+*.log
+backend/firebase-service-account.json
+backend/*firebase-adminsdk*.json
+frontend/google-services.json
+frontend/android/
+frontend/ios/

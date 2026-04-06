@@ -2,8 +2,11 @@ import React, { useContext } from 'react';
 import { View, ActivityIndicator, Platform, StatusBar as NativeStatusBar, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, AuthContext } from './src/context/AuthContext';
+import { NotificationProvider } from './src/context/NotificationContext';
 import { StatusBar } from 'expo-status-bar';
+import { flushPendingNavigation, navigationRef } from './src/navigation/navigationRef';
 
 // 1. Shared Screens
 import WelcomeScreen from './src/screens/WelcomeScreen';
@@ -11,6 +14,7 @@ import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
+import NotificationCenterScreen from './src/screens/NotificationCenterScreen';
 
 // 2. Donor Screens
 import DonateScreen from './src/screens/DonateScreen';
@@ -23,7 +27,6 @@ import NGOScreen from './src/screens/ngo/NGODashboard';
 
 // 4. Admin Screens
 import AdminDashboard from './src/screens/admin/AdminDashboard';
-import AdminRoleScreen from './src/screens/admin/AdminRoleScreen';
 import UserManagement from './src/screens/admin/UserManagement';
 import FoodMonitoring from './src/screens/admin/FoodMonitoring';
 import Analytics from './src/screens/admin/Analytics';
@@ -38,7 +41,11 @@ import ChatScreen from './src/screens/ChatScreen';
 const Stack = createNativeStackNavigator();
 
 const AppNav = () => {
-  const { userToken, loading } = useContext(AuthContext);
+  const { userToken, userInfo, loading } = useContext(AuthContext);
+  const navigatorKey = userToken === null ? 'auth' : userInfo?.role || 'app';
+  const initialRouteName = userToken === null
+    ? 'Welcome'
+    : 'Home';
 
   if (loading) return (
     <View style={styles.loader}>
@@ -59,8 +66,8 @@ const AppNav = () => {
   return (
     <View style={styles.appContainer}>
       <StatusBar style="dark" backgroundColor="transparent" />
-      <NavigationContainer>
-        <Stack.Navigator>
+      <NavigationContainer ref={navigationRef} onReady={flushPendingNavigation}>
+        <Stack.Navigator key={navigatorKey} initialRouteName={initialRouteName}>
           {userToken === null ? (
             // === AUTHENTICATION ===
             <>
@@ -74,6 +81,7 @@ const AppNav = () => {
               {/* Home serves as the Role Gateway */}
               <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
               <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
+              <Stack.Screen name="Notifications" component={NotificationCenterScreen} options={headerOptions('Notifications')} />
 
               {/* Donor Routes */}
               <Stack.Screen name="Donate" component={DonateScreen} options={{ headerShown: false }} />
@@ -88,7 +96,6 @@ const AppNav = () => {
               <Stack.Screen name="VolunteerDashboard" component={VolunteerScreen} options={headerOptions('Delivery Tasks')} />
 
               {/* Admin Routes */}
-              <Stack.Screen name="AdminRole" component={AdminRoleScreen} options={{ headerShown: false }} />
               <Stack.Screen name="AdminDashboard" component={AdminDashboard} options={{ headerShown: false }} />
               <Stack.Screen name="UserManagement" component={UserManagement} options={headerOptions('Manage Users')} />
               <Stack.Screen name="FoodMonitoring" component={FoodMonitoring} options={headerOptions('Food Monitoring')} />
@@ -123,9 +130,13 @@ const AppNav = () => {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppNav />
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <NotificationProvider>
+          <AppNav />
+        </NotificationProvider>
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }
 

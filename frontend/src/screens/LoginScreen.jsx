@@ -1,11 +1,31 @@
-﻿import React, { useState, useContext } from 'react';
-import { 
-  View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, StatusBar, Image, KeyboardAvoidingView, Platform 
+import React, { useContext, useState } from 'react';
+import {
+  ActivityIndicator,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { AuthContext } from '../context/AuthContext';
 import client from '../api/client';
 
-const AppLogo = require('../../assets/logo.png'); 
+const LOGO = require('../../assets/logo.png');
+
+const COLORS = {
+  primary: '#FF624C',
+  background: '#FFFFFF',
+  text: '#1E2433',
+  muted: '#93A0AE',
+  input: '#F6F7FB',
+  blush: '#FFF3F0',
+};
 
 const LoginScreen = ({ navigation }) => {
   const { login } = useContext(AuthContext);
@@ -14,224 +34,247 @@ const LoginScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    if (!email || !password) return alert('Please fill both fields');
+    if (!email || !password) {
+      alert('Please enter your email and password.');
+      return;
+    }
+
     setLoading(true);
     try {
-      const res = await client.post('/auth/login', { email, password });
+      const res = await client.post('/auth/login', {
+        email: email.trim(),
+        password,
+      });
       login(res.data.token, res.data.user);
     } catch (error) {
-      alert('Login Failed: ' + (error.response?.data?.message || 'Check network'));
+      alert('Login failed: ' + (error.response?.data?.message || 'Check network'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <StatusBar barStyle="light-content" backgroundColor="#FC5C5A" />
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar style="dark" backgroundColor="#FFFFFF" />
 
-      <View style={styles.hero}>
-        <View style={styles.heroHeader}>
-          <View>
-            <Text style={styles.heroLabel}>NeedFeed Donor Login</Text>
-            <Text style={styles.heroTitle}>Fuel the next meal.</Text>
+      <KeyboardAvoidingView
+        style={styles.keyboard}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.heroPanel}>
+            <View style={styles.heroOrbLarge} />
+            <View style={styles.heroOrbSmall} />
           </View>
-          <View style={styles.roleBadge}>
-            <Text style={styles.roleText}>Donor</Text>
+
+          <View style={styles.content}>
+            <View style={styles.logoShell}>
+              <Image source={LOGO} style={styles.logo} resizeMode="contain" />
+            </View>
+
+            <Text style={styles.title}>Welcome Back!</Text>
+            <Text style={styles.subtitle}>Login to NeedFeed</Text>
+
+            <View style={styles.formBlock}>
+              <Text style={styles.fieldLabel}>Email</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="admin@test.com"
+                placeholderTextColor="#B8C2CF"
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+              />
+            </View>
+
+            <View style={styles.formBlock}>
+              <Text style={styles.fieldLabel}>Password</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="******"
+                placeholderTextColor="#B8C2CF"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+              />
+            </View>
+
+            <TouchableOpacity
+              style={styles.forgotButton}
+              onPress={() => alert('Forgot password flow is not configured yet.')}
+            >
+              <Text style={styles.forgotButtonText}>Forgot Password?</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.primaryButton}
+              onPress={handleLogin}
+              disabled={loading}
+              activeOpacity={0.88}
+            >
+              {loading ? (
+                <ActivityIndicator color="#FFF" />
+              ) : (
+                <Text style={styles.primaryButtonText}>Sign In</Text>
+              )}
+            </TouchableOpacity>
+
+            <View style={styles.footerRow}>
+              <Text style={styles.footerText}>Don't have an account?</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+                <Text style={styles.footerLink}>Sign Up</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-        <Text style={styles.heroCopy}>
-          Donate once or schedule recurring drops — every login unlocks a faster handoff to a hungry family.
-        </Text>
-        <View style={styles.logoGroup}>
-          <Image source={AppLogo} style={styles.logo} />
-          <View style={styles.glow} />
-        </View>
-      </View>
-
-      <View style={styles.formCard}>
-        <Text style={styles.formTitle}>Sign in</Text>
-        <Text style={styles.formSubtitle}>Secure access to your donation history & commitments.</Text>
-
-        <View style={styles.inputGroup}>
-          <TextInput
-            style={styles.input}
-            placeholder="you@email.com"
-            placeholderTextColor="#9CA3AF"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
-        </View>
-
-        <View style={styles.inputGroup}>
-          <TextInput
-            style={styles.input}
-            placeholder="••••••••"
-            placeholderTextColor="#9CA3AF"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-        </View>
-
-        <TouchableOpacity style={styles.loginBtn} onPress={handleLogin} disabled={loading}>
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Continue to dashboard</Text>}
-        </TouchableOpacity>
-
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>New to NeedFeed?</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-            <Text style={styles.linkText}>Create Donor Account</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#F8F9FB',
-    justifyContent: 'space-between',
+    backgroundColor: COLORS.background,
   },
-  hero: {
-    backgroundColor: '#FC5C5A',
-    paddingTop: Platform.OS === 'android' ? 50 : 60,
-    paddingHorizontal: 30,
-    paddingBottom: 40,
-    borderBottomLeftRadius: 35,
-    borderBottomRightRadius: 35,
-    shadowColor: '#FC5C5A',
-    shadowOpacity: 0.35,
-    shadowOffset: { width: 0, height: 10 },
-    shadowRadius: 25,
-    elevation: 8,
+  keyboard: {
+    flex: 1,
   },
-  heroHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 34,
   },
-  heroLabel: {
-    color: '#FFEDEB',
-    fontSize: 14,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    fontWeight: '600',
+  heroPanel: {
+    height: 270,
+    backgroundColor: COLORS.blush,
+    borderBottomLeftRadius: 62,
+    borderBottomRightRadius: 62,
+    overflow: 'hidden',
   },
-  heroTitle: {
-    color: '#FFF',
-    fontSize: 28,
-    fontWeight: '800',
-    marginTop: 8,
+  heroOrbLarge: {
+    position: 'absolute',
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: '#FFE8E2',
+    top: -120,
+    right: -90,
   },
-  roleBadge: {
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 20,
+  heroOrbSmall: {
+    position: 'absolute',
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: '#FFF9F7',
+    bottom: -110,
+    left: -60,
   },
-  roleText: {
-    color: '#FFF',
-    fontWeight: '700',
-    letterSpacing: 0.5,
+  content: {
+    flex: 1,
+    paddingHorizontal: 28,
+    marginTop: -82,
   },
-  heroCopy: {
-    color: '#FFE7E4',
-    fontSize: 14,
-    marginTop: 20,
-    lineHeight: 22,
-  },
-  logoGroup: {
+  logoShell: {
     alignSelf: 'center',
-    marginTop: 20,
-    width: 110,
-    height: 110,
-    borderRadius: 55,
+    width: 176,
+    height: 176,
+    borderRadius: 88,
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    shadowColor: COLORS.primary,
+    shadowOpacity: 0.16,
+    shadowOffset: { width: 0, height: 12 },
+    shadowRadius: 28,
+    elevation: 10,
   },
   logo: {
-    width: 70,
-    height: 70,
+    width: 134,
+    height: 134,
   },
-  glow: {
-    position: 'absolute',
-    width: 165,
-    height: 165,
-    borderRadius: 82.5,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    right: -30,
-    top: 10,
+  title: {
+    marginTop: 26,
+    textAlign: 'center',
+    color: COLORS.text,
+    fontSize: 34,
+    lineHeight: 40,
+    fontWeight: '900',
   },
-  formCard: {
-    marginHorizontal: 20,
-    marginTop: 20,
-    marginBottom: 40,
-    backgroundColor: '#FFF',
-    borderRadius: 26,
-    padding: 26,
-    shadowColor: '#0F172A',
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 8 },
-    shadowRadius: 20,
-    elevation: 6,
-  },
-  formTitle: {
-    fontSize: 24,
+  subtitle: {
+    marginTop: 8,
+    textAlign: 'center',
+    color: '#9AA6B3',
+    fontSize: 17,
     fontWeight: '700',
-    color: '#0F172A',
   },
-  formSubtitle: {
-    marginTop: 4,
-    fontSize: 14,
-    color: '#94A3B8',
+  formBlock: {
+    marginTop: 28,
   },
-  inputGroup: {
-    marginTop: 20,
+  fieldLabel: {
+    color: '#324150',
+    fontSize: 15,
+    fontWeight: '800',
+    marginBottom: 12,
   },
   input: {
-    backgroundColor: '#F1F5F9',
-    paddingVertical: 16,
-    paddingHorizontal: 18,
-    borderRadius: 16,
+    backgroundColor: COLORS.input,
+    borderRadius: 22,
+    paddingHorizontal: 22,
+    paddingVertical: 20,
+    color: COLORS.text,
     fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    color: '#0F172A',
-  },
-  loginBtn: {
-    backgroundColor: '#0F172A',
-    marginTop: 30,
-    paddingVertical: 16,
-    borderRadius: 16,
-    alignItems: 'center',
-  },
-  btnText: {
-    color: '#FFF',
     fontWeight: '700',
-    fontSize: 16,
   },
-  footer: {
+  forgotButton: {
+    alignSelf: 'flex-end',
     marginTop: 18,
+  },
+  forgotButtonText: {
+    color: COLORS.primary,
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  primaryButton: {
+    marginTop: 58,
+    backgroundColor: COLORS.primary,
+    borderRadius: 22,
+    paddingVertical: 22,
+    alignItems: 'center',
+    shadowColor: COLORS.primary,
+    shadowOpacity: 0.24,
+    shadowOffset: { width: 0, height: 12 },
+    shadowRadius: 20,
+    elevation: 8,
+  },
+  primaryButtonText: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: '900',
+  },
+  footerRow: {
+    marginTop: 54,
     flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'center',
     gap: 6,
+    flexWrap: 'wrap',
   },
   footerText: {
-    color: '#94A3B8',
-  },
-  linkText: {
-    color: '#0F172A',
+    color: '#8495A5',
+    fontSize: 16,
     fontWeight: '700',
+  },
+  footerLink: {
+    color: COLORS.primary,
+    fontSize: 16,
+    fontWeight: '900',
   },
 });
 
 export default LoginScreen;
+

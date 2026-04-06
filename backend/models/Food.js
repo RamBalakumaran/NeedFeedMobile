@@ -1,5 +1,23 @@
 const mongoose = require('mongoose');
 
+const feedbackEntrySchema = new mongoose.Schema({
+  rating: { type: Number, min: 1, max: 5 },
+  comment: { type: String, trim: true, maxlength: 280 },
+  submittedAt: { type: Date, default: null },
+}, { _id: false });
+
+const statusHistoryEntrySchema = new mongoose.Schema({
+  status: { type: String, required: true },
+  label: { type: String, default: '' },
+  note: { type: String, default: '' },
+  actor: {
+    id: { type: String, default: null },
+    role: { type: String, default: '' },
+    name: { type: String, default: '' },
+  },
+  timestamp: { type: Date, default: Date.now },
+}, { _id: false });
+
 const foodSchema = new mongoose.Schema({
   // 1. Linking - Who posted this?
   donor: { 
@@ -44,10 +62,19 @@ const foodSchema = new mongoose.Schema({
 
   // 6. 🚀 NEW: WORKFLOW TRACKING
   // This manages the lifecycle: Available -> Pending (NGO Requests) -> Accepted (Donor Approves) -> PickedUp -> Delivered
-  status: { 
-    type: String, 
-    enum: ['Available', 'Pending', 'Accepted','FindingVolunteer','WaitingForVolunteer','PickedUp', 'Delivered', 'Expired', 'Cancelled'], 
-    default: 'Available' 
+  status: {
+    type: String,
+    enum: ['Available', 'Pending', 'Accepted', 'FindingVolunteer', 'WaitingForVolunteer', 'Assigned', 'PickupStarted', 'PickedUp', 'InTransit', 'Delivered', 'Expired', 'Cancelled'],
+    default: 'Available'
+  },
+  workflowStatus: {
+    type: String,
+    enum: ['donation_created', 'requested', 'accepted', 'rejected', 'volunteer_assigned', 'pickup_started', 'picked_up', 'in_transit', 'delivered', 'cancelled', 'expired'],
+    default: 'donation_created',
+  },
+  statusHistory: {
+    type: [statusHistoryEntrySchema],
+    default: [],
   },
   
   // Who requested the food? (NGO)
@@ -62,6 +89,13 @@ const foodSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'User', 
     default: null 
+  },
+
+  deliveredAt: { type: Date, default: null },
+  feedback: {
+    donor: { type: feedbackEntrySchema, default: () => ({}) },
+    ngo: { type: feedbackEntrySchema, default: () => ({}) },
+    volunteer: { type: feedbackEntrySchema, default: () => ({}) },
   },
 
   createdAt: { type: Date, default: Date.now }

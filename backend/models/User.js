@@ -43,6 +43,7 @@ const userSchema = new mongoose.Schema({
   preferredArea: { type: String }, // Locality name
   vehicleType: { type: String },   // Bike, Car, Van
   isAvailable: { type: Boolean, default: true },
+  fcmTokens: [{ type: String }],
 
   createdAt: { type: Date, default: Date.now }
 });

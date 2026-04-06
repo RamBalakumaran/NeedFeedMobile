@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { registerUser, loginUser } = require('../controllers/authController');
+const { registerUser, loginUser, updateProfile } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../config/cloudinary'); // Reuse your existing Cloudinary setup
 const User = require('../models/User');
@@ -8,6 +8,7 @@ const User = require('../models/User');
 // Register & Login
 router.post('/register', registerUser);
 router.post('/login', loginUser);
+router.put('/update-profile', protect, updateProfile);
 
 // ✅ NEW: Update Profile Image Route
 router.put('/update-profile-image', protect, upload.single('profileImage'), async (req, res) => {

@@ -1,7 +1,11 @@
 import React, { createContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import client from '../api/client';
 
 export const AuthContext = createContext();
+
+const PUSH_TOKEN_STORAGE_KEY = 'devicePushToken';
+const LEGACY_PUSH_TOKEN_STORAGE_KEY = 'expoPushToken';
 
 export const AuthProvider = ({ children }) => {
   const [userToken, setUserToken] = useState(null);
@@ -34,11 +38,24 @@ export const AuthProvider = ({ children }) => {
     AsyncStorage.setItem('userInfo', JSON.stringify(user));
   };
 
-  const logout = () => {
-    setUserToken(null);
-    setUserInfo(null);
-    AsyncStorage.removeItem('userToken');
-    AsyncStorage.removeItem('userInfo');
+  const logout = async () => {
+    const activeToken = userToken;
+
+    try {
+      const pushToken = await AsyncStorage.getItem(PUSH_TOKEN_STORAGE_KEY);
+      if (activeToken && pushToken) {
+        await client.delete('/notifications/push-token', {
+          headers: { Authorization: `Bearer ${activeToken}` },
+          data: { token: pushToken },
+        });
+      }
+    } catch (error) {
+      console.log(`Logout push token cleanup failed: ${error.message}`);
+    } finally {
+      setUserToken(null);
+      setUserInfo(null);
+      await AsyncStorage.multiRemove(['userToken', 'userInfo', PUSH_TOKEN_STORAGE_KEY, LEGACY_PUSH_TOKEN_STORAGE_KEY]);
+    }
   };
 
   // ✅ NEW: Helper to update user data locally

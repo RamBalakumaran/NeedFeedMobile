@@ -1,62 +1,153 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, StatusBar } from 'react-native';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 
-const COLORS = { primary: '#F25F4C', text: '#1D212B', gray: '#9FA1AC' };
+const LOGO = require('../../assets/logo.png');
+
+const COLORS = {
+  primary: '#FF624C',
+  background: '#FFFFFF',
+  text: '#1F2432',
+  muted: '#8F98A7',
+  blush: '#FFF2EE',
+};
 
 const WelcomeScreen = ({ navigation }) => {
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-      
-      {/* 1. Full Screen Image */}
-      <Image 
-        source={{ uri: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=1000&auto=format&fit=crop' }} 
-        style={styles.image}
-      />
-      
-      {/* 2. Bottom Content Card */}
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar style="dark" backgroundColor="#FFFFFF" />
+
+      <View style={styles.topCanvas}>
+        <View style={styles.topCloud} />
+        <View style={styles.sideCloud} />
+      </View>
+
       <View style={styles.content}>
-        <View style={styles.textBlock}>
-          <Text style={styles.title}>
-            Donate Food,{"\n"}
-            <Text style={{color: COLORS.primary}}>Save Lives.</Text>
-          </Text>
-          <Text style={styles.subtitle}>
-            Bridge the gap between hunger and surplus. Join our community to make a difference today.
-          </Text>
+        <View style={styles.logoShell}>
+          <Image source={LOGO} style={styles.logo} resizeMode="contain" />
         </View>
 
-        {/* 3. Get Started Button */}
-        <TouchableOpacity 
-          style={styles.btn} 
+        <Text style={styles.eyebrow}>NeedFeed</Text>
+        <Text style={styles.title}>Donate food. Deliver hope.</Text>
+        <Text style={styles.subtitle}>
+          Bridge the gap between food surplus and hunger with one simple flow for donors,
+          NGOs, and volunteers.
+        </Text>
+
+        <TouchableOpacity
+          style={styles.primaryButton}
+          activeOpacity={0.88}
           onPress={() => navigation.navigate('Login')}
         >
-          <Text style={styles.btnText}>Get Started</Text>
+          <Text style={styles.primaryButtonText}>Get Started</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
-  image: { flex: 1, width: '100%', opacity: 0.9 },
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  topCanvas: {
+    height: '45%',
+    backgroundColor: COLORS.blush,
+    borderBottomLeftRadius: 60,
+    borderBottomRightRadius: 60,
+    overflow: 'hidden',
+  },
+  topCloud: {
+    position: 'absolute',
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: '#FFE8E2',
+    top: -70,
+    right: -80,
+  },
+  sideCloud: {
+    position: 'absolute',
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: '#FFF7F4',
+    bottom: -90,
+    left: -70,
+  },
   content: {
-    position: 'absolute', bottom: 0, width: '100%',
-    backgroundColor: '#FFF',
-    borderTopLeftRadius: 35, borderTopRightRadius: 35,
-    padding: 30, paddingBottom: 50,
-    alignItems: 'center'
+    flex: 1,
+    marginTop: -84,
+    paddingHorizontal: 28,
+    paddingBottom: 44,
+    alignItems: 'center',
   },
-  textBlock: { width: '100%', marginBottom: 30 },
-  title: { fontSize: 36, fontWeight: '800', color: COLORS.text, lineHeight: 44, marginBottom: 15 },
-  subtitle: { fontSize: 15, color: COLORS.gray, lineHeight: 24 },
-  btn: {
-    backgroundColor: COLORS.primary, width: '100%', paddingVertical: 18,
-    borderRadius: 20, alignItems: 'center',
-    shadowColor: COLORS.primary, shadowOpacity: 0.4, shadowRadius: 10, shadowOffset: {width:0, height:5}, elevation: 10
+  logoShell: {
+    width: 168,
+    height: 168,
+    borderRadius: 84,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: COLORS.primary,
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 12 },
+    shadowRadius: 28,
+    elevation: 10,
   },
-  btnText: { color: '#FFF', fontSize: 18, fontWeight: 'bold' }
+  logo: {
+    width: 128,
+    height: 128,
+  },
+  eyebrow: {
+    marginTop: 34,
+    color: COLORS.primary,
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+  },
+  title: {
+    marginTop: 14,
+    color: COLORS.text,
+    fontSize: 36,
+    lineHeight: 44,
+    textAlign: 'center',
+    fontWeight: '900',
+  },
+  subtitle: {
+    marginTop: 16,
+    color: COLORS.muted,
+    fontSize: 16,
+    lineHeight: 26,
+    textAlign: 'center',
+  },
+  primaryButton: {
+    marginTop: 'auto',
+    width: '100%',
+    backgroundColor: COLORS.primary,
+    borderRadius: 22,
+    paddingVertical: 18,
+    alignItems: 'center',
+    shadowColor: COLORS.primary,
+    shadowOpacity: 0.25,
+    shadowOffset: { width: 0, height: 10 },
+    shadowRadius: 18,
+    elevation: 7,
+  },
+  primaryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '900',
+  },
 });
 
 export default WelcomeScreen;
+

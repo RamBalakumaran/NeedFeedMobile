@@ -1,5 +1,14 @@
-﻿import React, { useEffect, useState, useContext } from 'react';
-import { SafeAreaView, ScrollView, View, Text, StyleSheet, TouchableOpacity, StatusBar, RefreshControl } from 'react-native';
+import React, { useEffect, useState, useContext } from 'react';
+import {
+  ScrollView,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  StatusBar,
+  RefreshControl
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import client from '../../api/client';
 import { AuthContext } from '../../context/AuthContext';
@@ -171,3 +180,4 @@ const styles = StyleSheet.create({
 });
 
 export default AdminRoleScreen;
+
