@@ -38,6 +38,7 @@ const COLORS = {
 const FOOD_TYPES = ['Veg', 'Non-Veg', 'Vegan'];
 const CATEGORIES = ['Cooked', 'Raw', 'Bakery', 'Packed'];
 const STORAGE_OPTIONS = ['Room Temperature', 'Refrigerate', 'Keep Hot'];
+const PLACEHOLDER_COLOR = '#8B97A8';
 
 const Selector = ({ options, selected, onSelect }) => (
   <View style={styles.selectorWrap}>
@@ -387,6 +388,7 @@ const MyDonationsScreen = ({ navigation }) => {
               <TextInput
                 style={styles.input}
                 placeholder="Food name"
+                placeholderTextColor={PLACEHOLDER_COLOR}
                 value={editForm?.title}
                 onChangeText={(value) => setEditForm((prev) => ({ ...prev, title: value }))}
               />
@@ -394,6 +396,7 @@ const MyDonationsScreen = ({ navigation }) => {
               <TextInput
                 style={styles.input}
                 placeholder="Quantity"
+                placeholderTextColor={PLACEHOLDER_COLOR}
                 value={editForm?.quantity}
                 onChangeText={(value) => setEditForm((prev) => ({ ...prev, quantity: value }))}
               />
@@ -401,6 +404,7 @@ const MyDonationsScreen = ({ navigation }) => {
               <TextInput
                 style={[styles.input, styles.textArea]}
                 placeholder="Description"
+                placeholderTextColor={PLACEHOLDER_COLOR}
                 value={editForm?.description}
                 onChangeText={(value) => setEditForm((prev) => ({ ...prev, description: value }))}
                 multiline

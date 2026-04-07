@@ -16,6 +16,35 @@ import { AuthContext } from '../../context/AuthContext';
 import { NotificationContext } from '../../context/NotificationContext';
 import { getWorkflowStatusLabel, getWorkflowStatusTone } from '../../utils/workflowStatus';
 
+const getFoodCoordinates = (item) => {
+  const coordinates = item?.location?.coordinates;
+  if (!Array.isArray(coordinates) || coordinates.length < 2) {
+    return null;
+  }
+
+  const longitude = Number(coordinates[0]);
+  const latitude = Number(coordinates[1]);
+
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return null;
+  }
+
+  return { latitude, longitude };
+};
+
+const getPickupAddress = (item) => (
+  item?.address
+  || item?.donor?.address
+  || item?.donor?.city
+  || 'Pickup address unavailable'
+);
+
+const getDonorName = (donor) => (
+  donor?.organizationName
+  || donor?.name
+  || 'Donor'
+);
+
 const NGODashboard = ({ navigation }) => {
   const { userToken } = useContext(AuthContext);
   const { notifications } = useContext(NotificationContext);
@@ -48,7 +77,7 @@ const NGODashboard = ({ navigation }) => {
 
   useFocusEffect(useCallback(() => {
     fetchRequests();
-  }, []));
+  }, [userToken]));
 
   const performRequestAction = async (requestId, requestFn, successTitle, successMessage) => {
     try {
@@ -123,6 +152,19 @@ const NGODashboard = ({ navigation }) => {
     ]);
   };
 
+  const openMapPreview = (coordinates, title) => {
+    if (!coordinates) {
+      Alert.alert('Map unavailable', 'Location coordinates are not available for this pickup point yet.');
+      return;
+    }
+
+    navigation.navigate('MapScreen', {
+      latitude: coordinates.latitude,
+      longitude: coordinates.longitude,
+      title,
+    });
+  };
+
   const renderItem = ({ item }) => {
     const canViewDetails = item.status !== 'Available';
     const canViewConversation = ['Accepted', 'FindingVolunteer', 'WaitingForVolunteer', 'Assigned', 'PickupStarted', 'PickedUp', 'InTransit', 'Delivered'].includes(item.status);
@@ -135,6 +177,8 @@ const NGODashboard = ({ navigation }) => {
     const workflowTone = getWorkflowStatusTone(item);
     const workflowLabel = getWorkflowStatusLabel(item);
     const isBusy = busyRequestId === item._id;
+    const pickupCoordinates = getFoodCoordinates(item);
+    const pickupAddress = getPickupAddress(item);
 
     return (
       <View style={styles.card}>
@@ -153,7 +197,8 @@ const NGODashboard = ({ navigation }) => {
           </View>
         </View>
 
-        <Text style={styles.infoText}>Donor: {item.donor?.name || 'Private Donor'}</Text>
+        <Text style={styles.infoText}>Donor: {getDonorName(item.donor)}</Text>
+        <Text style={styles.infoText}>Pickup address: {pickupAddress}</Text>
         {volunteerName ? (
           <Text style={styles.infoText}>Volunteer: {volunteerName}</Text>
         ) : null}
@@ -171,6 +216,23 @@ const NGODashboard = ({ navigation }) => {
             <Text style={styles.decisionBody}>
               Your NGO can collect this donation directly and mark it delivered, or cancel the request and release the order.
             </Text>
+            <View style={styles.pickupInfoCard}>
+              <View style={styles.pickupInfoHeader}>
+                <Ionicons name="storefront-outline" size={18} color="#C2410C" />
+                <Text style={styles.pickupInfoTitle}>Pickup From Donor</Text>
+              </View>
+              <Text style={styles.pickupInfoName}>{getDonorName(item.donor)}</Text>
+              <Text style={styles.pickupInfoMeta}>Phone: {item.donor?.phone || 'Unavailable'}</Text>
+              <Text style={styles.pickupInfoAddress}>{pickupAddress}</Text>
+              <TouchableOpacity
+                style={[styles.pickupMapBtn, !pickupCoordinates && styles.disabledBtn]}
+                onPress={() => openMapPreview(pickupCoordinates, `${item.title} Pickup`)}
+                disabled={!pickupCoordinates}
+              >
+                <Ionicons name="map-outline" size={16} color="#C2410C" />
+                <Text style={styles.pickupMapText}>Open Pickup Map</Text>
+              </TouchableOpacity>
+            </View>
             <View style={styles.decisionActions}>
               <TouchableOpacity
                 style={[styles.btn, styles.directPickupBtn, isBusy && styles.disabledBtn]}
@@ -312,6 +374,61 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 19,
     fontWeight: '700',
+  },
+  pickupInfoCard: {
+    marginTop: 14,
+    borderRadius: 12,
+    padding: 12,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#FED7AA',
+  },
+  pickupInfoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  pickupInfoTitle: {
+    color: '#9A3412',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  pickupInfoName: {
+    color: '#7C2D12',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  pickupInfoMeta: {
+    marginTop: 4,
+    color: '#9A3412',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  pickupInfoAddress: {
+    marginTop: 6,
+    color: '#7C2D12',
+    fontSize: 13,
+    lineHeight: 19,
+    fontWeight: '700',
+  },
+  pickupMapBtn: {
+    alignSelf: 'flex-start',
+    marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: 999,
+    backgroundColor: '#FFF7ED',
+    borderWidth: 1,
+    borderColor: '#FED7AA',
+  },
+  pickupMapText: {
+    color: '#C2410C',
+    fontSize: 12,
+    fontWeight: '800',
   },
   decisionActions: {
     flexDirection: 'row',

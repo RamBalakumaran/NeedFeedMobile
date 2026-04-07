@@ -10,6 +10,7 @@ import client from '../api/client';
 import { AuthContext } from '../context/AuthContext';
 
 const COLORS = { primary: '#F25F4C', bg: '#FFFFFF', input: '#F6F8FA', text: '#1D212B', gray: '#9FA1AC' };
+const PLACEHOLDER_COLOR = '#8B97A8';
 
 // Reusable Selector
 const Selector = ({ options, selected, onSelect }) => (
@@ -160,15 +161,15 @@ const DonateScreen = ({ navigation }) => {
         <Text style={styles.sectionTitle}>Food Details</Text>
 
         <View style={styles.inputGroup}>
-          <TextInput style={styles.input} placeholder="Food Name (e.g. Veg Biryani)" value={title} onChangeText={setTitle} />
+          <TextInput style={styles.input} placeholder="Food Name (e.g. Veg Biryani)" placeholderTextColor={PLACEHOLDER_COLOR} value={title} onChangeText={setTitle} />
           <View style={{flexDirection: 'row', gap: 10}}>
-            <TextInput style={[styles.input, {flex: 1}]} placeholder="Qty" value={quantity} onChangeText={setQuantity} />
+            <TextInput style={[styles.input, {flex: 1}]} placeholder="Qty" placeholderTextColor={PLACEHOLDER_COLOR} value={quantity} onChangeText={setQuantity} />
             <View style={[styles.locBadge, location && styles.locActive]}>
               <Ionicons name={location ? "location" : "hourglass"} size={16} color={location ? "#FFF" : COLORS.gray} />
               <Text style={location ? styles.locTextActive : styles.locText}>{location ? " GPS" : " ..."}</Text>
             </View>
           </View>
-          <TextInput style={styles.input} placeholder="Ingredients" value={description} onChangeText={setDescription} />
+          <TextInput style={styles.input} placeholder="Ingredients" placeholderTextColor={PLACEHOLDER_COLOR} value={description} onChangeText={setDescription} />
         </View>
 
         <Text style={styles.label}>Dietary Type</Text>

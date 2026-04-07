@@ -446,9 +446,9 @@ exports.requestFood = async (req, res) => {
 exports.getNGORequests = async (req, res) => {
   try {
     const foods = await Food.find({ requestedBy: req.user.id })
-      .populate('donor', 'name phone address')
-      .populate('requestedBy', 'name phone address organizationName')
-      .populate('assignedVolunteer', 'name phone address vehicleType')
+      .populate('donor', 'name organizationName phone address city location')
+      .populate('requestedBy', 'name organizationName phone address city location')
+      .populate('assignedVolunteer', 'name organizationName phone address city vehicleType location')
       .sort({ createdAt: -1 });
     const enrichedFoods = await enrichFoodsWithRequestMeta(foods);
     res.json(enrichedFoods);
@@ -460,9 +460,9 @@ exports.getNGORequests = async (req, res) => {
 exports.getDonorRequests = async (req, res) => {
   try {
     const foods = await Food.find({ donor: req.user.id, status: { $ne: 'Available' } })
-      .populate('donor', 'name phone address')
-      .populate('requestedBy', 'name phone address organizationName')
-      .populate('assignedVolunteer', 'name phone address vehicleType')
+      .populate('donor', 'name organizationName phone address city location')
+      .populate('requestedBy', 'name organizationName phone address city location')
+      .populate('assignedVolunteer', 'name organizationName phone address city vehicleType location')
       .sort({ createdAt: -1 });
     const enrichedFoods = await enrichFoodsWithRequestMeta(foods);
     res.json(enrichedFoods);
@@ -671,9 +671,9 @@ exports.respondToNGORequest = async (req, res) => {
 exports.getVolunteerTasks = async (req, res) => {
   try {
     const tasks = await Food.find({ assignedVolunteer: req.user.id })
-      .populate('donor', 'name phone address')
-      .populate('requestedBy', 'name phone address organizationName')
-      .populate('assignedVolunteer', 'name phone address vehicleType')
+      .populate('donor', 'name organizationName phone address city location')
+      .populate('requestedBy', 'name organizationName phone address city location')
+      .populate('assignedVolunteer', 'name organizationName phone address city vehicleType location')
       .sort({ createdAt: -1 });
 
     const enrichedTasks = await enrichFoodsWithRequestMeta(tasks);

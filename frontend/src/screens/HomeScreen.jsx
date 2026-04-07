@@ -36,6 +36,7 @@ const COLORS = {
 };
 
 const ROLE_TITLES = { donor: 'Donor Hub', ngo: 'Relief Hub', volunteer: 'Route Hub', admin: 'Mission Control' };
+const PLACEHOLDER_COLOR = '#8B97A8';
 
 const ROLE_ACTIONS = {
   donor: [
@@ -443,6 +444,7 @@ export default function HomeScreen({ navigation }) {
               onChangeText={setFeedbackComment}
               textAlignVertical="top"
               placeholder="Share timing, communication, pickup quality, or delivery support."
+              placeholderTextColor={PLACEHOLDER_COLOR}
             />
             <Text style={styles.count}>{feedbackComment.trim().length}/280</Text>
 

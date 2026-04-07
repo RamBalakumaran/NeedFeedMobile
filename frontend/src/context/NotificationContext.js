@@ -52,6 +52,8 @@ Notifications.setNotificationHandler({
 const SOCKET_URL = (client.defaults.baseURL || '').replace(/\/api\/?$/, '');
 const PUSH_TOKEN_STORAGE_KEY = 'devicePushToken';
 const LEGACY_PUSH_TOKEN_STORAGE_KEY = 'expoPushToken';
+const FOREGROUND_BANNER_DELAY_MS = 1200;
+const RECENT_REMOTE_PUSH_TTL_MS = 10000;
 const IOS_GRANTED_STATUSES = new Set([
   Notifications.IosAuthorizationStatus.AUTHORIZED,
   Notifications.IosAuthorizationStatus.PROVISIONAL,
@@ -198,6 +200,8 @@ export const NotificationProvider = ({ children }) => {
   const notificationListenerRef = useRef(null);
   const pushTokenListenerRef = useRef(null);
   const responseListenerRef = useRef(null);
+  const pendingForegroundBannerTimersRef = useRef(new Map());
+  const recentRemoteNotificationIdsRef = useRef(new Map());
 
   const authHeaders = userToken
     ? { Authorization: `Bearer ${userToken}` }
@@ -206,6 +210,77 @@ export const NotificationProvider = ({ children }) => {
   useEffect(() => {
     activeChatIdRef.current = activeChatId;
   }, [activeChatId]);
+
+  useEffect(() => () => {
+    pendingForegroundBannerTimersRef.current.forEach((timeoutId) => {
+      clearTimeout(timeoutId);
+    });
+    pendingForegroundBannerTimersRef.current.clear();
+    recentRemoteNotificationIdsRef.current.clear();
+  }, []);
+
+  const pruneRecentRemoteNotificationIds = () => {
+    const now = Date.now();
+
+    recentRemoteNotificationIdsRef.current.forEach((timestamp, notificationId) => {
+      if (!Number.isFinite(timestamp) || now - timestamp > RECENT_REMOTE_PUSH_TTL_MS) {
+        recentRemoteNotificationIdsRef.current.delete(notificationId);
+      }
+    });
+  };
+
+  const clearPendingForegroundBanner = (notificationId) => {
+    const normalizedId = String(notificationId || '').trim();
+    if (!normalizedId) return;
+
+    const timeoutId = pendingForegroundBannerTimersRef.current.get(normalizedId);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      pendingForegroundBannerTimersRef.current.delete(normalizedId);
+    }
+  };
+
+  const markRemoteNotificationReceived = (notificationId) => {
+    const normalizedId = String(notificationId || '').trim();
+    if (!normalizedId) return;
+
+    pruneRecentRemoteNotificationIds();
+    recentRemoteNotificationIdsRef.current.set(normalizedId, Date.now());
+    clearPendingForegroundBanner(normalizedId);
+  };
+
+  const hasRecentRemoteNotification = (notificationId) => {
+    const normalizedId = String(notificationId || '').trim();
+    if (!normalizedId) return false;
+
+    pruneRecentRemoteNotificationIds();
+    const receivedAt = recentRemoteNotificationIdsRef.current.get(normalizedId);
+    return Number.isFinite(receivedAt) && Date.now() - receivedAt <= RECENT_REMOTE_PUSH_TTL_MS;
+  };
+
+  const scheduleForegroundBannerFallback = (notification) => {
+    const notificationId = normalizeNotificationId(notification);
+    if (!notificationId || AppState.currentState !== 'active') {
+      return;
+    }
+
+    clearPendingForegroundBanner(notificationId);
+
+    const timeoutId = setTimeout(async () => {
+      pendingForegroundBannerTimersRef.current.delete(notificationId);
+
+      if (hasRecentRemoteNotification(notificationId)) {
+        return;
+      }
+
+      await showLocalBannerAsync({
+        ...notification,
+        _id: notificationId,
+      });
+    }, FOREGROUND_BANNER_DELAY_MS);
+
+    pendingForegroundBannerTimersRef.current.set(notificationId, timeoutId);
+  };
 
   const applyReadState = (ids) => {
     const idSet = new Set((ids || []).map(String));
@@ -391,9 +466,7 @@ export const NotificationProvider = ({ children }) => {
 
       upsertNotification(notification);
 
-      if (IS_EXPO_GO && AppState.currentState === 'active') {
-        await showLocalBannerAsync(notification);
-      }
+      scheduleForegroundBannerFallback(notification);
     });
 
     return () => {
@@ -461,6 +534,8 @@ export const NotificationProvider = ({ children }) => {
       if (!payload?.notificationId || !payload?.type) {
         return;
       }
+
+      markRemoteNotificationReceived(payload.notificationId);
 
       upsertNotification({
         _id: String(payload.notificationId),

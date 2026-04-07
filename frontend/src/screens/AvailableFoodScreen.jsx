@@ -33,6 +33,7 @@ const COLORS = {
   red: '#E53935',
   blue: '#2563EB',
 };
+const PLACEHOLDER_COLOR = '#8B97A8';
 
 const NEARBY_OPTIONS = [2, 5, 10];
 const FOOD_TYPE_OPTIONS = ['All', 'Veg', 'Non-Veg', 'Vegan'];
@@ -483,6 +484,7 @@ const AvailableFoodScreen = ({ navigation }) => {
               <TextInput
                 style={styles.filterInput}
                 placeholder="Search by food name"
+                placeholderTextColor={PLACEHOLDER_COLOR}
                 value={foodNameFilter}
                 onChangeText={setFoodNameFilter}
               />
@@ -490,6 +492,7 @@ const AvailableFoodScreen = ({ navigation }) => {
               <TextInput
                 style={styles.filterInput}
                 placeholder="Search by donor name"
+                placeholderTextColor={PLACEHOLDER_COLOR}
                 value={donorNameFilter}
                 onChangeText={setDonorNameFilter}
               />
@@ -497,6 +500,7 @@ const AvailableFoodScreen = ({ navigation }) => {
               <TextInput
                 style={styles.filterInput}
                 placeholder="Search by location"
+                placeholderTextColor={PLACEHOLDER_COLOR}
                 value={locationFilter}
                 onChangeText={setLocationFilter}
               />

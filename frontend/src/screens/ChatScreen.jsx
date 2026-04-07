@@ -19,7 +19,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import io from 'socket.io-client';
-import MapView, { Marker } from 'react-native-maps';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
@@ -42,6 +41,7 @@ const COLORS = {
   border: '#E5E7EB',
   composer: '#FFFFFF',
 };
+const PLACEHOLDER_COLOR = '#8B97A8';
 
 const EMOJIS = [
   '\u{1F600}',
@@ -368,35 +368,24 @@ const SwipeReplyMessage = ({
           ) : item.messageType === 'location' && item.location ? (
             <View>
               <View style={styles.locationCard}>
-                <View pointerEvents="none" style={styles.locationMapShell}>
-                  <MapView
-                    style={styles.locationMap}
-                    scrollEnabled={false}
-                    zoomEnabled={false}
-                    rotateEnabled={false}
-                    pitchEnabled={false}
-                    toolbarEnabled={false}
-                    region={{
-                      latitude: item.location.latitude,
-                      longitude: item.location.longitude,
-                      latitudeDelta: 0.0065,
-                      longitudeDelta: 0.0065,
-                    }}
-                  >
-                    <Marker
-                      coordinate={{
-                        latitude: item.location.latitude,
-                        longitude: item.location.longitude,
-                      }}
-                    />
-                  </MapView>
+                <View style={styles.locationPreviewShell}>
+                  <View style={styles.locationIconBadge}>
+                    <Ionicons name="location" size={24} color={COLORS.accent} />
+                  </View>
+                  <View style={styles.locationPreviewCopy}>
+                    <Text style={styles.locationPreviewTitle}>Live Location</Text>
+                    <Text style={styles.locationPreviewHint}>Tap to open in Google Maps</Text>
+                  </View>
                 </View>
                 <View style={styles.locationCopyRow}>
                   <Ionicons name="location" size={16} color={COLORS.accent} />
-                  <Text numberOfLines={2} style={styles.locationLabelText}>
+                  <Text numberOfLines={3} style={styles.locationLabelText}>
                     {buildLocationLabel(item.location)}
                   </Text>
                 </View>
+                <Text style={styles.locationCoordsText}>
+                  {`${Number(item.location.latitude).toFixed(5)}, ${Number(item.location.longitude).toFixed(5)}`}
+                </Text>
               </View>
               {hasCaption ? <Text style={styles.mediaCaption}>{item.text}</Text> : null}
             </View>
@@ -1251,6 +1240,7 @@ const ChatScreen = ({ route }) => {
                   value={text}
                   onChangeText={setText}
                   placeholder={editingMessage ? 'Edit your message' : 'Type a message'}
+                  placeholderTextColor={PLACEHOLDER_COLOR}
                   style={styles.textInput}
                   multiline
                   blurOnSubmit={false}
@@ -1493,13 +1483,37 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: 'rgba(255,255,255,0.48)',
   },
-  locationMapShell: {
+  locationPreviewShell: {
     width: '100%',
-    height: 140,
-    backgroundColor: '#E5E7EB',
+    minHeight: 104,
+    backgroundColor: '#E8F7EE',
+    paddingHorizontal: 14,
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
-  locationMap: {
+  locationIconBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(31, 143, 67, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  locationPreviewCopy: {
     flex: 1,
+  },
+  locationPreviewTitle: {
+    color: COLORS.text,
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  locationPreviewHint: {
+    marginTop: 4,
+    color: COLORS.subtle,
+    fontSize: 12,
+    fontWeight: '700',
   },
   locationCopyRow: {
     flexDirection: 'row',
@@ -1513,6 +1527,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     lineHeight: 18,
+  },
+  locationCoordsText: {
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+    color: COLORS.subtle,
+    fontSize: 11,
+    fontWeight: '700',
   },
   messageMetaRow: {
     flexDirection: 'row',
