@@ -93,8 +93,17 @@ const normalizeDevicePushToken = (tokenResponse) => {
 
   return {
     token,
-    platform: String(tokenResponse?.type || Platform.OS || '').toLowerCase(),
+    platform: String(Platform.OS || '').toLowerCase(),
+    transport: String(tokenResponse?.type || '').toLowerCase(),
   };
+};
+
+const isSupportedAndroidPushToken = (normalizedToken) => {
+  if (!normalizedToken?.token || normalizedToken.platform !== 'android') {
+    return false;
+  }
+
+  return !normalizedToken.transport || ['android', 'fcm'].includes(normalizedToken.transport);
 };
 
 const ensureNotificationPermissionsAsync = async () => {
@@ -139,8 +148,8 @@ const registerForPushNotificationsAsync = async () => {
       return null;
     }
 
-    if (normalizedToken.platform !== 'android') {
-      console.log('Direct FCM push is currently configured for Android builds in this project.');
+    if (!isSupportedAndroidPushToken(normalizedToken)) {
+      console.log('Direct FCM push is currently configured for Android FCM builds in this project.');
       return null;
     }
 
@@ -420,7 +429,7 @@ export const NotificationProvider = ({ children }) => {
 
     pushTokenListenerRef.current = Notifications.addPushTokenListener((tokenResponse) => {
       const normalizedToken = normalizeDevicePushToken(tokenResponse);
-      if (!normalizedToken || normalizedToken.platform !== 'android') {
+      if (!isSupportedAndroidPushToken(normalizedToken)) {
         return;
       }
 

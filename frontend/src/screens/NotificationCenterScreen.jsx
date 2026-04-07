@@ -26,10 +26,16 @@ const iconForType = (type) => {
   if (type === 'chat_message') return 'chatbubble-ellipses';
   if (type === 'food_posted') return 'restaurant';
   if (type === 'ngo_request') return 'notifications';
+  if (type === 'request_accepted') return 'checkmark-circle';
+  if (type === 'waiting_for_volunteer') return 'time';
   if (type === 'volunteer_assigned') return 'bicycle';
+  if (type === 'pickup_started') return 'walk';
+  if (type === 'food_picked_up') return 'cube';
+  if (type === 'in_transit') return 'car';
   if (type === 'food_delivered') return 'checkmark-done-circle';
   if (type === 'chat_terminated') return 'stop-circle';
   if (type === 'request_cancelled') return 'close-circle';
+  if (type === 'request_rejected') return 'close-circle';
   return 'notifications';
 };
 

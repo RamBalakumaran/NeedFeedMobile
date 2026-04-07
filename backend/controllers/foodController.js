@@ -36,7 +36,7 @@ const getNgoCategoryPreferences = (foodType = '') => {
   return ['Veg', 'Both'];
 };
 
-const getEligibleNgoRecipientIds = async (req, food) => {
+const getEligibleNgoRecipientIds = async (_req, food) => {
   const query = {
     role: 'ngo',
     _id: { $ne: food?.donor },
@@ -60,15 +60,8 @@ const getEligibleNgoRecipientIds = async (req, food) => {
     };
   }
 
-  const candidates = await User.find(query).select('_id fcmTokens');
-  const onlineUserIds = req.app.get('onlineUserIds');
-
-  return candidates
-    .filter((ngo) => (
-      (ngo.fcmTokens || []).length > 0
-      || onlineUserIds?.has(String(ngo._id))
-    ))
-    .map((ngo) => ngo._id);
+  const candidates = await User.find(query).select('_id');
+  return candidates.map((ngo) => ngo._id);
 };
 
 const syncWorkflowOnFood = (food, workflowStatus, actor, note = '') => {
